@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>记事本</title>
+<!-- 添加css样式 -->	
+    <style>
+		body {
+			font-family: Arial, sans-serif;
+			background-image: url('1.jpg');
+			background-size: cover;
+			background-repeat: no-repeat;
+			padding: 20px;
+		}
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+    
+        h2 {
+            color: #333;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+    
+        @keyframes glow {
+            0% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+            100% { text-shadow: 2px 2px 10px rgba(255, 255, 0, 0.5); }
+        }
+    
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+    
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
+        }
+    
+        input[type="button"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px ;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    
+        input[type="button"]:hover {
+            background-color: #45a049;
+        }
+    
+        input[type="button"]:active {
+            background-color: #388e3c;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) inset;
+        }
+    
+        hr {
+            border: none;
+            height: 2px;
+            background-color: #ccc;
+            margin: 20px 0;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }  
+    
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #f2f2f2;
+        }
+    
+        #show tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    
+        #show tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 创建基本框架内容 -->
+	<h2>记事本</h2>
+	标题：<input id="title" name="title" type="text" size="60"/><br/>
+	事件信息：<textarea id="content" name="content" cols="50" rows="8"></textarea><br/>
+	添加人：<input id="user" name="user" type="text"/><br/>
+	<input type="button" value="添加事件" onclick="addMsg();"/>
+	<input type="button" value="清除事件" onclick="clearMsg();"/>
+	<hr/>
+	<table style="width:800px">
+		<tr>
+			<th>标题</th>
+			<th>事件内容</th>
+			<th>添加人</th>
+			<th>添加时间</th>
+			<th>操作</th>
+		</tr>
+		<tbody id="show"></tbody>
+	</table>
+    <!-- 把标题，实践，添加人和添加时间显示 -->
+	<script>
+		var loadMsg = function()
+		{
+			var tb = document.getElementById("show");
+			tb.innerHTML = "";
+			for(var i = 0, j = 0 ; i < localStorage.length ; i++)
+			{
+				var key = localStorage.key(i);
+				if (key.indexOf('_fk') == 0)
+				{
+					var date = new Date();
+					date.setTime(key.substring(3));
+					var datestr = date.toLocaleDateString()
+						+ "&nbsp;" + date.toLocaleTimeString();
+					var msgStr = localStorage[key];
+					var msg = JSON.parse(msgStr);
+					var row = tb.insertRow(j++);
+					row.insertCell(0).innerHTML = msg.title;
+					row.insertCell(1).innerHTML = msg.content;
+					row.insertCell(2).innerHTML = msg.user;
+					row.insertCell(3).innerHTML = datestr;
+					// 添加删除按钮
+					var deleteBtn = document.createElement("input");
+					deleteBtn.type = "button";
+					deleteBtn.value = "删除";
+					deleteBtn.onclick = (function(key) {
+						return function() {
+							deleteMsg(key);
+						};
+					})(key);
+					row.insertCell(4).appendChild(deleteBtn);
+				}
+			}
+		}
+        // 创建消息对象		
+		var addMsg = function()
+		{
+			var titleElement = document.getElementById("title");
+			var contentElement = document.getElementById("content");
+			var userElement = document.getElementById("user");
+			var msg = {
+				title: titleElement.value,
+				content: contentElement.value,
+				user: userElement.value
+			}
+        // 创建一个新的时间，保存用户数据
+			var time = new Date().getTime();
+			localStorage['_fk' + time] = JSON.stringify(msg);
+			titleElement.value = "";
+			contentElement.value = "";
+			userElement.value = "";
+			alert("数据已保存。");
+			loadMsg();
+		}
+        // 实现删除效果，单个内容
+		var deleteMsg = function(key)
+		{
+			if (confirm("确认删除此事件？")) {
+				localStorage.removeItem(key);
+				alert("事件已删除。");
+				loadMsg();
+			}
+		}
+        // 实现删除效果，全部内容		
+		var clearMsg = function()
+		{
+			if (confirm("确认清除所有事件信息？")) {
+				localStorage.clear();
+				alert("全部事件信息已被清除！");
+				loadMsg();
+			}
+		}
+		window.onload = loadMsg;
+	</script>
+</body>
+</html>
